@@ -56,14 +56,6 @@ class MenuModule(GameModule):
         button_frame = ttk.Frame(self.frame)
         button_frame.pack()
 
-        buttons = [
-            ("Start New Game", self.start_new_game, 10),
-            ("Continue Game", self.continue_game, 5),
-            ("Create Sample Database", self.create_sample_database, 5),
-            ("Gene Database Editor", self.open_editor, 5),
-            ("Exit", self.controller.quit_application, 10),
-        ]
-
         # Create buttons
         start_btn = ttk.Button(
             button_frame,
@@ -89,14 +81,6 @@ class MenuModule(GameModule):
             width=20
         )
         sample_btn.pack(pady=5)
-
-        editor_btn = ttk.Button(
-            button_frame,
-            text="Gene Database Editor",
-            command=self.open_editor,
-            width=20
-        )
-        editor_btn.pack(pady=5)
 
         exit_btn = ttk.Button(
             button_frame,
@@ -144,10 +128,6 @@ class MenuModule(GameModule):
                 messagebox.showinfo("Success", f"Sample database created: {os.path.basename(file_path)}")
             except Exception as e:
                 messagebox.showerror("Error", f"Failed to create sample database:\n{e}")
-
-    def open_editor(self):
-        """Open gene editor."""
-        self.controller.switch_to_module("editor")
 
 
 class BuilderModule(GameModule):

@@ -55,12 +55,10 @@ class VirusSandboxController:
         try:
             from ui_menu_builder import MenuModule, BuilderModule
             from ui_play import PlayModule
-            from ui_editor import EditorModule
 
             self.modules["menu"] = MenuModule(self.root, self)
             self.modules["builder"] = BuilderModule(self.root, self)
             self.modules["play"] = PlayModule(self.root, self)
-            self.modules["editor"] = EditorModule(self.root, self)
         except ImportError:
             # Fallback for when Phase 3 modules aren't ready yet
             print("Warning: UI modules not yet available. Phase 3 needed.")
@@ -110,13 +108,6 @@ class VirusSandboxController:
 
         self.modules["play"].set_database_manager(database_manager)
         self.modules["play"].set_game_state(self.game_state)
-
-        # Wire editor with database manager
-        self.modules["editor"].db_manager = database_manager
-        self.modules["editor"].update_database_display()
-        self.modules["editor"].update_entity_list()
-        self.modules["editor"].update_gene_list()
-        self.modules["editor"].update_milestone_list()
 
         self.switch_to_module("builder")
 
@@ -327,21 +318,6 @@ class VirusSandboxController:
 
     def quit_application(self):
         """Exit the application."""
-        # Check for unsaved changes in editor
-        if (hasattr(self.modules.get("editor", {}), 'db_manager') and
-                self.modules["editor"].db_manager.is_modified):
-            result = messagebox.askyesnocancel(
-                "Unsaved Changes",
-                "You have unsaved changes in the gene editor. Save before exiting?"
-            )
-            if result is True:
-                try:
-                    self.modules["editor"].save_database()
-                except:
-                    pass
-            elif result is None:
-                return
-
         if messagebox.askokcancel("Exit", "Are you sure you want to exit?"):
             self.root.quit()
 
