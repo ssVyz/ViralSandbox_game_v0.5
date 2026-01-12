@@ -1,7 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
   <component name="ChangeListManager">
-    <list default="true" id="42cf8791-eb14-45a9-a6d3-8799f51f4919" name="Changes" comment="initial clone" />
+    <list default="true" id="42cf8791-eb14-45a9-a6d3-8799f51f4919" name="Changes" comment="menu implementation">
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -68,11 +74,20 @@
       <option name="project" value="LOCAL" />
       <updated>1768247504461</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="menu implementation">
+      <option name="closed" value="true" />
+      <created>1768249228782</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1768249228782</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="initial clone" />
-    <option name="LAST_COMMIT_MESSAGE" value="initial clone" />
+    <MESSAGE value="menu implementation" />
+    <option name="LAST_COMMIT_MESSAGE" value="menu implementation" />
   </component>
 </project>

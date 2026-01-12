@@ -1,305 +1,438 @@
 """
-Main Menu Module - PySide6
+UI Styles and Themes - PySide6
 
-Modern main menu with animated title and clean design.
+Provides consistent styling across all UI modules.
 """
 
-import os
-from PySide6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
-    QFrame, QSpacerItem, QSizePolicy, QFileDialog, QMessageBox
-)
-from PySide6.QtCore import Qt, QTimer, QPropertyAnimation, QEasingCurve, Property
-from PySide6.QtGui import QFont
-
-from ui_styles import ColorPalette, Fonts, Styles
-from data_models import GeneDatabaseManager
-from constants import FILE_TYPE_JSON, DEFAULT_SAMPLE_FILENAME
+from PySide6.QtGui import QFont, QPalette, QColor
+from PySide6.QtCore import Qt
 
 
-class AnimatedTitleLabel(QLabel):
-    """Title label with fade-in animation."""
-    
-    def __init__(self, text, parent=None):
-        super().__init__(text, parent)
-        self._opacity = 0.0
-        self.setFont(Fonts.title())
-        self.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        
-    def get_opacity(self):
-        return self._opacity
-    
-    def set_opacity(self, value):
-        self._opacity = value
-        self.setStyleSheet(f"""
-            QLabel {{
-                color: {ColorPalette.PRIMARY};
-                background: transparent;
-            }}
-        """)
-        self.setWindowOpacity(value)
-    
-    opacity = Property(float, get_opacity, set_opacity)
-    
-    def animate_in(self, delay=0):
-        """Animate the title fading in."""
-        self.animation = QPropertyAnimation(self, b"opacity")
-        self.animation.setDuration(1000)
-        self.animation.setStartValue(0.0)
-        self.animation.setEndValue(1.0)
-        self.animation.setEasingCurve(QEasingCurve.Type.InOutCubic)
-        
-        if delay > 0:
-            QTimer.singleShot(delay, self.animation.start)
-        else:
-            self.animation.start()
+class ColorPalette:
+    """Color definitions matching the design system."""
+
+    # Primary colors
+    PRIMARY = "#2563eb"
+    PRIMARY_HOVER = "#1d4ed8"
+    PRIMARY_ACTIVE = "#1e40af"
+
+    # Background colors
+    BG_PRIMARY = "#ffffff"
+    BG_SECONDARY = "#f8fafc"
+    BG_TERTIARY = "#f1f5f9"
+    BG_DARK = "#1e293b"
+
+    # Text colors
+    TEXT_PRIMARY = "#0f172a"
+    TEXT_SECONDARY = "#475569"
+    TEXT_TERTIARY = "#94a3b8"
+    TEXT_INVERSE = "#ffffff"
+
+    # Border colors
+    BORDER_LIGHT = "#e2e8f0"
+    BORDER_DEFAULT = "#cbd5e1"
+    BORDER_DARK = "#94a3b8"
+
+    # Status colors
+    SUCCESS = "#16a34a"
+    SUCCESS_BG = "#dcfce7"
+    WARNING = "#ea580c"
+    WARNING_BG = "#fed7aa"
+    DANGER = "#dc2626"
+    DANGER_BG = "#fecaca"
+    INFO = "#0284c7"
+    INFO_BG = "#e0f2fe"
+
+    # Special colors
+    ACCENT = "#8b5cf6"
+    ACCENT_HOVER = "#7c3aed"
+
+    # Entity class colors (for visualization)
+    VIRION = "#6b7280"
+    RNA = "#22c55e"
+    DNA = "#3b82f6"
+    PROTEIN = "#f97316"
+    COMPLEX = "#8b5cf6"
+
+    # Location background colors
+    LOC_EXTRACELLULAR = "#e0f2fe"
+    LOC_MEMBRANE = "#fef3c7"
+    LOC_ENDOSOME = "#ffedd5"
+    LOC_CYTOPLASM = "#f3f4f6"
+    LOC_NUCLEUS = "#ede9fe"
 
 
-class MenuButton(QPushButton):
-    """Styled menu button."""
-    
-    def __init__(self, text, primary=True, parent=None):
-        super().__init__(text, parent)
-        self.setFont(Fonts.button())
-        self.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.setMinimumHeight(50)
-        
-        if primary:
-            self.setStyleSheet(Styles.PRIMARY_BUTTON)
-        else:
-            self.setStyleSheet(Styles.SECONDARY_BUTTON)
+class Fonts:
+    """Font definitions."""
+
+    @staticmethod
+    def title():
+        """Large title font."""
+        font = QFont("Segoe UI", 32, QFont.Weight.Bold)
+        return font
+
+    @staticmethod
+    def subtitle():
+        """Subtitle font."""
+        font = QFont("Segoe UI", 16)
+        return font
+
+    @staticmethod
+    def header():
+        """Section header font."""
+        font = QFont("Segoe UI", 18, QFont.Weight.Bold)
+        return font
+
+    @staticmethod
+    def subheader():
+        """Subsection header font."""
+        font = QFont("Segoe UI", 14, QFont.Weight.Bold)
+        return font
+
+    @staticmethod
+    def body():
+        """Body text font."""
+        font = QFont("Segoe UI", 11)
+        return font
+
+    @staticmethod
+    def small():
+        """Small text font."""
+        font = QFont("Segoe UI", 9)
+        return font
+
+    @staticmethod
+    def tiny():
+        """Tiny text font."""
+        font = QFont("Segoe UI", 8)
+        return font
+
+    @staticmethod
+    def button():
+        """Button text font."""
+        font = QFont("Segoe UI", 11, QFont.Weight.DemiBold)
+        return font
+
+    @staticmethod
+    def mono():
+        """Monospace font."""
+        font = QFont("Consolas", 10)
+        return font
+
+    @staticmethod
+    def mono_small():
+        """Small monospace font."""
+        font = QFont("Consolas", 9)
+        return font
 
 
-class QuickActionButton(QPushButton):
-    """Small quick action button."""
-    
-    def __init__(self, text, parent=None):
-        super().__init__(text, parent)
-        self.setFont(Fonts.small())
-        self.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.setStyleSheet(f"""
-            QPushButton {{
-                background-color: transparent;
-                color: {ColorPalette.TEXT_SECONDARY};
-                border: 1px solid {ColorPalette.BORDER_LIGHT};
-                border-radius: 6px;
-                padding: 8px 16px;
-                font-size: 10px;
-                min-width: 80px;
-            }}
-            QPushButton:hover {{
-                background-color: {ColorPalette.BG_TERTIARY};
-                color: {ColorPalette.TEXT_PRIMARY};
-                border-color: {ColorPalette.BORDER_DEFAULT};
-            }}
-        """)
+class Styles:
+    """Central stylesheet definitions."""
+
+    MAIN_WINDOW = f"""
+        QMainWindow {{
+            background-color: {ColorPalette.BG_SECONDARY};
+        }}
+    """
+
+    PRIMARY_BUTTON = f"""
+        QPushButton {{
+            background-color: {ColorPalette.PRIMARY};
+            color: {ColorPalette.TEXT_INVERSE};
+            border: none;
+            border-radius: 8px;
+            padding: 12px 24px;
+            font-size: 14px;
+            font-weight: 600;
+            min-width: 120px;
+        }}
+        QPushButton:hover {{
+            background-color: {ColorPalette.PRIMARY_HOVER};
+        }}
+        QPushButton:pressed {{
+            background-color: {ColorPalette.PRIMARY_ACTIVE};
+        }}
+        QPushButton:disabled {{
+            background-color: {ColorPalette.BORDER_DEFAULT};
+            color: {ColorPalette.TEXT_TERTIARY};
+        }}
+    """
+
+    SECONDARY_BUTTON = f"""
+        QPushButton {{
+            background-color: transparent;
+            color: {ColorPalette.TEXT_PRIMARY};
+            border: 2px solid {ColorPalette.BORDER_DEFAULT};
+            border-radius: 8px;
+            padding: 12px 24px;
+            font-size: 14px;
+            font-weight: 600;
+            min-width: 120px;
+        }}
+        QPushButton:hover {{
+            border-color: {ColorPalette.PRIMARY};
+            color: {ColorPalette.PRIMARY};
+            background-color: {ColorPalette.BG_TERTIARY};
+        }}
+        QPushButton:pressed {{
+            background-color: {ColorPalette.BORDER_LIGHT};
+        }}
+        QPushButton:disabled {{
+            border-color: {ColorPalette.BORDER_LIGHT};
+            color: {ColorPalette.TEXT_TERTIARY};
+        }}
+    """
+
+    DANGER_BUTTON = f"""
+        QPushButton {{
+            background-color: {ColorPalette.DANGER};
+            color: {ColorPalette.TEXT_INVERSE};
+            border: none;
+            border-radius: 8px;
+            padding: 12px 24px;
+            font-size: 14px;
+            font-weight: 600;
+            min-width: 120px;
+        }}
+        QPushButton:hover {{
+            background-color: #b91c1c;
+        }}
+        QPushButton:pressed {{
+            background-color: #991b1b;
+        }}
+    """
+
+    SUCCESS_BUTTON = f"""
+        QPushButton {{
+            background-color: {ColorPalette.SUCCESS};
+            color: {ColorPalette.TEXT_INVERSE};
+            border: none;
+            border-radius: 8px;
+            padding: 12px 24px;
+            font-size: 14px;
+            font-weight: 600;
+            min-width: 120px;
+        }}
+        QPushButton:hover {{
+            background-color: #15803d;
+        }}
+        QPushButton:pressed {{
+            background-color: #166534;
+        }}
+    """
+
+    CARD = f"""
+        QFrame {{
+            background-color: {ColorPalette.BG_PRIMARY};
+            border: 1px solid {ColorPalette.BORDER_LIGHT};
+            border-radius: 12px;
+            padding: 16px;
+        }}
+    """
+
+    CARD_HOVER = f"""
+        QFrame {{
+            background-color: {ColorPalette.BG_PRIMARY};
+            border: 2px solid {ColorPalette.PRIMARY};
+            border-radius: 12px;
+            padding: 16px;
+        }}
+    """
+
+    CARD_SELECTED = f"""
+        QFrame {{
+            background-color: {ColorPalette.INFO_BG};
+            border: 2px solid {ColorPalette.PRIMARY};
+            border-radius: 12px;
+            padding: 16px;
+        }}
+    """
+
+    CARD_SUCCESS = f"""
+        QFrame {{
+            background-color: {ColorPalette.SUCCESS_BG};
+            border: 2px solid {ColorPalette.SUCCESS};
+            border-radius: 12px;
+            padding: 16px;
+        }}
+    """
+
+    CARD_DISABLED = f"""
+        QFrame {{
+            background-color: {ColorPalette.BG_TERTIARY};
+            border: 1px solid {ColorPalette.BORDER_LIGHT};
+            border-radius: 12px;
+            padding: 16px;
+        }}
+    """
+
+    LABEL_PRIMARY = f"""
+        QLabel {{
+            color: {ColorPalette.TEXT_PRIMARY};
+            font-size: 11pt;
+        }}
+    """
+
+    LABEL_SECONDARY = f"""
+        QLabel {{
+            color: {ColorPalette.TEXT_SECONDARY};
+            font-size: 10pt;
+        }}
+    """
+
+    LABEL_TERTIARY = f"""
+        QLabel {{
+            color: {ColorPalette.TEXT_TERTIARY};
+            font-size: 9pt;
+        }}
+    """
+
+    SCROLL_AREA = f"""
+        QScrollArea {{
+            border: none;
+            background: transparent;
+        }}
+        QScrollArea > QWidget > QWidget {{
+            background: transparent;
+        }}
+        QScrollBar:horizontal {{
+            border: none;
+            background: {ColorPalette.BG_TERTIARY};
+            height: 8px;
+            border-radius: 4px;
+        }}
+        QScrollBar::handle:horizontal {{
+            background: {ColorPalette.BORDER_DEFAULT};
+            border-radius: 4px;
+            min-width: 20px;
+        }}
+        QScrollBar::handle:horizontal:hover {{
+            background: {ColorPalette.BORDER_DARK};
+        }}
+        QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal {{
+            width: 0;
+        }}
+        QScrollBar:vertical {{
+            border: none;
+            background: {ColorPalette.BG_TERTIARY};
+            width: 8px;
+            border-radius: 4px;
+        }}
+        QScrollBar::handle:vertical {{
+            background: {ColorPalette.BORDER_DEFAULT};
+            border-radius: 4px;
+            min-height: 20px;
+        }}
+        QScrollBar::handle:vertical:hover {{
+            background: {ColorPalette.BORDER_DARK};
+        }}
+        QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {{
+            height: 0;
+        }}
+    """
+
+    COMBO_BOX = f"""
+        QComboBox {{
+            background-color: {ColorPalette.BG_PRIMARY};
+            border: 1px solid {ColorPalette.BORDER_DEFAULT};
+            border-radius: 6px;
+            padding: 6px 12px;
+            min-width: 100px;
+        }}
+        QComboBox:hover {{
+            border-color: {ColorPalette.PRIMARY};
+        }}
+        QComboBox:focus {{
+            border-color: {ColorPalette.PRIMARY};
+            outline: none;
+        }}
+        QComboBox::drop-down {{
+            border: none;
+            width: 20px;
+        }}
+        QComboBox::down-arrow {{
+            image: none;
+            border-left: 4px solid transparent;
+            border-right: 4px solid transparent;
+            border-top: 6px solid {ColorPalette.TEXT_SECONDARY};
+            margin-right: 8px;
+        }}
+        QComboBox QAbstractItemView {{
+            background-color: {ColorPalette.BG_PRIMARY};
+            border: 1px solid {ColorPalette.BORDER_DEFAULT};
+            border-radius: 6px;
+            selection-background-color: {ColorPalette.INFO_BG};
+            selection-color: {ColorPalette.TEXT_PRIMARY};
+        }}
+    """
+
+    PROGRESS_BAR = f"""
+        QProgressBar {{
+            background-color: {ColorPalette.BG_TERTIARY};
+            border: none;
+            border-radius: 4px;
+            text-align: center;
+        }}
+        QProgressBar::chunk {{
+            background-color: {ColorPalette.PRIMARY};
+            border-radius: 4px;
+        }}
+    """
+
+    PROGRESS_BAR_SUCCESS = f"""
+        QProgressBar {{
+            background-color: {ColorPalette.BG_TERTIARY};
+            border: none;
+            border-radius: 4px;
+            text-align: center;
+        }}
+        QProgressBar::chunk {{
+            background-color: {ColorPalette.SUCCESS};
+            border-radius: 4px;
+        }}
+    """
+
+    TOOLTIP = f"""
+        QToolTip {{
+            background-color: {ColorPalette.BG_DARK};
+            color: {ColorPalette.TEXT_INVERSE};
+            border: none;
+            border-radius: 6px;
+            padding: 8px 12px;
+            font-size: 10pt;
+        }}
+    """
 
 
-class MenuModule(QWidget):
-    """Main menu module with modern design."""
-    
-    def __init__(self, controller):
-        super().__init__()
-        self.controller = controller
-        self.setup_ui()
+def apply_dark_palette(app):
+    """Apply dark color palette to application (optional)."""
+    palette = QPalette()
+    palette.setColor(QPalette.ColorRole.Window, QColor(ColorPalette.BG_DARK))
+    palette.setColor(QPalette.ColorRole.WindowText, QColor(ColorPalette.TEXT_INVERSE))
+    palette.setColor(QPalette.ColorRole.Base, QColor("#0f172a"))
+    palette.setColor(QPalette.ColorRole.AlternateBase, QColor(ColorPalette.BG_DARK))
+    palette.setColor(QPalette.ColorRole.ToolTipBase, QColor(ColorPalette.TEXT_INVERSE))
+    palette.setColor(QPalette.ColorRole.ToolTipText, QColor(ColorPalette.TEXT_INVERSE))
+    palette.setColor(QPalette.ColorRole.Text, QColor(ColorPalette.TEXT_INVERSE))
+    palette.setColor(QPalette.ColorRole.Button, QColor(ColorPalette.BG_DARK))
+    palette.setColor(QPalette.ColorRole.ButtonText, QColor(ColorPalette.TEXT_INVERSE))
+    palette.setColor(QPalette.ColorRole.BrightText, QColor("#ef4444"))
+    palette.setColor(QPalette.ColorRole.Link, QColor(ColorPalette.PRIMARY))
+    palette.setColor(QPalette.ColorRole.Highlight, QColor(ColorPalette.PRIMARY))
+    palette.setColor(QPalette.ColorRole.HighlightedText, QColor(ColorPalette.TEXT_INVERSE))
+    app.setPalette(palette)
+
+
+def apply_global_styles(app):
+    """Apply global stylesheet to the application."""
+    app.setStyleSheet(f"""
+        {Styles.TOOLTIP}
         
-    def setup_ui(self):
-        """Setup the menu UI."""
-        # Main layout
-        main_layout = QVBoxLayout(self)
-        main_layout.setContentsMargins(40, 40, 40, 40)
-        main_layout.setSpacing(30)
+        QMainWindow {{
+            background-color: {ColorPalette.BG_SECONDARY};
+        }}
         
-        # Add spacer at top
-        main_layout.addSpacerItem(
-            QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
-        )
-        
-        # Title section
-        title_layout = QVBoxLayout()
-        title_layout.setSpacing(10)
-        
-        self.title_label = AnimatedTitleLabel("Virus Sandbox")
-        title_layout.addWidget(self.title_label)
-        
-        subtitle = QLabel("Design and simulate your own virtual viruses")
-        subtitle.setFont(Fonts.subtitle())
-        subtitle.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        subtitle.setStyleSheet(f"color: {ColorPalette.TEXT_SECONDARY};")
-        title_layout.addWidget(subtitle)
-        
-        main_layout.addLayout(title_layout)
-        
-        # Add spacer
-        main_layout.addSpacerItem(
-            QSpacerItem(20, 20, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed)
-        )
-        
-        # Main buttons container
-        buttons_container = QFrame()
-        buttons_container.setMaximumWidth(400)
-        buttons_container.setStyleSheet(Styles.CARD)
-        
-        buttons_layout = QVBoxLayout(buttons_container)
-        buttons_layout.setContentsMargins(24, 24, 24, 24)
-        buttons_layout.setSpacing(12)
-        
-        # New Game button
-        self.new_game_btn = MenuButton("New Game", primary=True)
-        self.new_game_btn.clicked.connect(self.start_new_game)
-        buttons_layout.addWidget(self.new_game_btn)
-        
-        # Continue Game button (disabled for now)
-        self.continue_btn = MenuButton("Continue Game", primary=False)
-        self.continue_btn.setEnabled(False)
-        self.continue_btn.clicked.connect(self.continue_game)
-        buttons_layout.addWidget(self.continue_btn)
-        
-        # Database Editor button (placeholder)
-        self.editor_btn = MenuButton("Database Editor", primary=False)
-        self.editor_btn.setEnabled(False)
-        self.editor_btn.setToolTip("Coming soon")
-        buttons_layout.addWidget(self.editor_btn)
-        
-        # Center the buttons container
-        button_container_layout = QHBoxLayout()
-        button_container_layout.addStretch()
-        button_container_layout.addWidget(buttons_container)
-        button_container_layout.addStretch()
-        
-        main_layout.addLayout(button_container_layout)
-        
-        # Quick actions section
-        quick_actions_layout = QHBoxLayout()
-        quick_actions_layout.setSpacing(12)
-        
-        quick_actions_label = QLabel("Quick Actions:")
-        quick_actions_label.setFont(Fonts.small())
-        quick_actions_label.setStyleSheet(f"color: {ColorPalette.TEXT_TERTIARY};")
-        quick_actions_layout.addWidget(quick_actions_label)
-        
-        # Create Sample Database button
-        self.sample_db_btn = QuickActionButton("Create Sample DB")
-        self.sample_db_btn.clicked.connect(self.create_sample_database)
-        quick_actions_layout.addWidget(self.sample_db_btn)
-        
-        quick_actions_layout.addStretch()
-        
-        # Exit button
-        self.exit_btn = QuickActionButton("Exit")
-        self.exit_btn.clicked.connect(self.exit_application)
-        quick_actions_layout.addWidget(self.exit_btn)
-        
-        main_layout.addLayout(quick_actions_layout)
-        
-        # Footer
-        footer = QLabel("v1.0 | Made with ❤️ for viral biology")
-        footer.setFont(Fonts.small())
-        footer.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        footer.setStyleSheet(f"color: {ColorPalette.TEXT_TERTIARY};")
-        main_layout.addWidget(footer)
-        
-        # Add spacer at bottom
-        main_layout.addSpacerItem(
-            QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
-        )
-        
-        # Set the main layout
-        self.setLayout(main_layout)
-        
-        # Apply window styling
-        self.setStyleSheet(f"""
-            QWidget {{
-                background-color: {ColorPalette.BG_SECONDARY};
-            }}
-        """)
-    
-    def show(self):
-        """Show the menu and animate title."""
-        super().show()
-        # Animate title after a short delay
-        QTimer.singleShot(100, lambda: self.title_label.animate_in(0))
-    
-    def hide(self):
-        """Hide the menu."""
-        super().hide()
-    
-    def start_new_game(self):
-        """Start a new game - select database first."""
-        file_dialog = QFileDialog(self)
-        file_dialog.setWindowTitle("Select Gene Database")
-        file_dialog.setNameFilters(["JSON files (*.json)", "All files (*)"])
-        file_dialog.setFileMode(QFileDialog.FileMode.ExistingFile)
-        file_dialog.setDirectory(os.getcwd())
-        
-        if file_dialog.exec():
-            file_paths = file_dialog.selectedFiles()
-            if file_paths:
-                file_path = file_paths[0]
-                try:
-                    db_manager = GeneDatabaseManager()
-                    db_manager.load_database(file_path)
-                    self.controller.start_new_game_with_database(db_manager)
-                except Exception as e:
-                    QMessageBox.critical(
-                        self,
-                        "Error",
-                        f"Failed to load database:\n{str(e)}"
-                    )
-    
-    def continue_game(self):
-        """Continue existing game - placeholder."""
-        QMessageBox.information(
-            self,
-            "Not Implemented",
-            "Continue game functionality will be added later"
-        )
-    
-    def create_sample_database(self):
-        """Create and save a sample database."""
-        file_dialog = QFileDialog(self)
-        file_dialog.setWindowTitle("Save Sample Database As")
-        file_dialog.setNameFilters(["JSON files (*.json)", "All files (*)"])
-        file_dialog.setFileMode(QFileDialog.FileMode.AnyFile)
-        file_dialog.setAcceptMode(QFileDialog.AcceptMode.AcceptSave)
-        file_dialog.setDirectory(os.getcwd())
-        file_dialog.selectFile(DEFAULT_SAMPLE_FILENAME)
-        
-        if file_dialog.exec():
-            file_paths = file_dialog.selectedFiles()
-            if file_paths:
-                file_path = file_paths[0]
-                
-                # Ensure .json extension
-                if not file_path.endswith('.json'):
-                    file_path += '.json'
-                
-                try:
-                    db_manager = GeneDatabaseManager()
-                    db_manager.create_sample_database()
-                    db_manager.save_database(file_path)
-                    
-                    QMessageBox.information(
-                        self,
-                        "Success",
-                        f"Sample database created:\n{os.path.basename(file_path)}"
-                    )
-                except Exception as e:
-                    QMessageBox.critical(
-                        self,
-                        "Error",
-                        f"Failed to create sample database:\n{str(e)}"
-                    )
-    
-    def exit_application(self):
-        """Exit the application with confirmation."""
-        reply = QMessageBox.question(
-            self,
-            "Exit",
-            "Are you sure you want to exit?",
-            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-            QMessageBox.StandardButton.No
-        )
-        
-        if reply == QMessageBox.StandardButton.Yes:
-            self.controller.quit_application()
+        QWidget {{
+            font-family: "Segoe UI", sans-serif;
+        }}
+    """)
